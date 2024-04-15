@@ -2,4 +2,9 @@
 target = "riscv64gc-unknown-none-elf"
 
 [target.riscv64gc-unknown-none-elf]
-rustflags = ["-Clink-arg=-Tsrc/linker.ld", "-Cforce-frame-pointers=yes"]
+rustflags = [
+  # Set linker script.
+  "-Clink-arg=-Tsrc/linker.ld",
+  # Force the compiler to not optimize fp.
+  "-Cforce-frame-pointers=yes",
+]
