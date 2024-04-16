@@ -4,9 +4,9 @@ _start: # Declare a symbol named _start, means the address of _start is the addr
     la sp, boot_stack_top # Before the control is transferred to Rust entry point, set the stack pointer to the top of stack.
     call rust_main
 
-    .section .bss.stack
-    .globl boot_stack_lower_bound
+    .section .bss.stack # Note that on RISCV, the stack addr is increse from higher to lower.
+    .globl boot_stack_lower_bound # Define global stack bottom addr
 boot_stack_lower_bound:
-    .space 4096 * 16
-    .globl boot_stack_top
+    .space 4096 * 16 # The max addr size is 64KiB
+    .globl boot_stack_top # Define global stack top addr
 boot_stack_top:

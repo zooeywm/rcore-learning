@@ -15,8 +15,8 @@ SECTIONS
         *(.text .text.*)
     }
 
-    /* We can also assign some global symbol as '.' to record addr at this time */
     . = ALIGN(4K);
+    /* We can also assign some global symbol as '.' to record addr at this time */
     etext = .;
     srodata = .;
     /* .rodata before ':' refers to a section name in the final binary */
