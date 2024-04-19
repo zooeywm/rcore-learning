@@ -17,7 +17,7 @@ mod sbi;
 
 use core::arch::global_asm;
 
-use log::{error, info, warn, LevelFilter};
+use log::{info, LevelFilter};
 
 use crate::{logger::MyLogger, sbi::shutdown};
 

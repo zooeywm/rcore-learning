@@ -4,10 +4,10 @@ use core::fmt::{Arguments, Write};
 
 use crate::sbi::console_putchar;
 
+/// Represent string print with calling sbi_rt.
 struct Stdout;
 
 impl Write for Stdout {
-    /// Define the way our os write str with sbi_rt.
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         for c in s.chars() {
             console_putchar(c as usize);

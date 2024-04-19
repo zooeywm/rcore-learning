@@ -1,14 +1,17 @@
+//! Logger using [`crate::println!()`]
+
 use log::Level;
 
 use crate::println;
 
+/// Logger using [`crate::println!()`]
 pub struct MyLogger;
 
 impl log::Log for MyLogger {
     fn enabled(&self, metadata: &log::Metadata) -> bool {
         metadata.level() <= Level::Info
     }
-    /// echo -e "\x1b[31mhello world\x1b[0m"
+
     fn log(&self, record: &log::Record) {
         if self.enabled(record.metadata()) {
             // Before realizing thread, it always be 0.
