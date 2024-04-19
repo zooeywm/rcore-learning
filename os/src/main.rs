@@ -8,10 +8,18 @@
 #![no_std]
 #![no_main]
 #![warn(missing_docs)]
+#![feature(panic_info_message)]
 
+mod console;
 mod lang_items;
+mod logger;
+mod sbi;
 
 use core::arch::global_asm;
+
+use log::{error, info, warn, LevelFilter};
+
+use crate::{logger::MyLogger, sbi::shutdown};
 
 global_asm!(include_str!("entry.asm"));
 
@@ -26,7 +34,27 @@ global_asm!(include_str!("entry.asm"));
 #[no_mangle]
 pub fn rust_main() -> ! {
     clear_bss();
-    loop {}
+    log::set_logger(&MyLogger).expect("Error initialize logger");
+    log::set_max_level(LevelFilter::Info);
+
+    let SectionInfo {
+        stext,
+        etext,
+        sdata,
+        edata,
+        srodata,
+        erodata,
+        sbss,
+        ebss,
+    } = get_sections();
+
+    info!(".text [{:#x}, {:#x})", stext, etext);
+    info!(".data [{:#x}, {:#x})", sdata, edata);
+    info!(".rodata [{:#x}, {:#x})", srodata, erodata);
+    info!(".bss [{:#x}, {:#x})", sbss, ebss);
+
+    info!("Hello, World!");
+    shutdown(false)
 }
 
 /// Clear `.bss` section.
@@ -38,4 +66,41 @@ fn clear_bss() {
         fn ebss();
     }
     (sbss as usize..ebss as usize).for_each(|a| unsafe { (a as *mut u8).write_volatile(0) })
+}
+
+/// Record section start and end addr.
+struct SectionInfo {
+    stext: usize,
+    etext: usize,
+    sdata: usize,
+    edata: usize,
+    srodata: usize,
+    erodata: usize,
+    sbss: usize,
+    ebss: usize,
+}
+
+/// Get [`SectionInfo`]
+fn get_sections() -> SectionInfo {
+    extern "C" {
+        fn stext();
+        fn etext();
+        fn sdata();
+        fn edata();
+        fn srodata();
+        fn erodata();
+        fn sbss();
+        fn ebss();
+    }
+
+    SectionInfo {
+        stext: stext as usize,
+        etext: etext as usize,
+        sdata: sdata as usize,
+        edata: edata as usize,
+        srodata: srodata as usize,
+        erodata: erodata as usize,
+        sbss: sbss as usize,
+        ebss: ebss as usize,
+    }
 }

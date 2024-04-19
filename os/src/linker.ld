@@ -41,6 +41,8 @@ SECTIONS
     . = ALIGN(4K);
     edata = .;
     .bss : {
+        /* Because we use bss as stack space, and bss will be made empty,
+         * but stack space don't need to be clear, we put it out of bss area */
         *(.bss.stack)
         sbss = .;
         *(.bss .bss.*)
