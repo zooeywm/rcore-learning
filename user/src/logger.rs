@@ -9,7 +9,7 @@ pub struct MyLogger;
 
 impl log::Log for MyLogger {
     fn enabled(&self, metadata: &log::Metadata) -> bool {
-        metadata.level() <= Level::Info
+        metadata.level() <= Level::Trace
     }
 
     fn log(&self, record: &log::Record) {
@@ -25,8 +25,8 @@ impl log::Log for MyLogger {
                 "\x1b[{}m[{}][{}] {}\x1b[0m",
                 color_code,
                 record.level(),
-                // S-mode
-                "S",
+                // U-mode
+                "U",
                 record.args()
             );
         }
@@ -39,12 +39,12 @@ impl log::Log for MyLogger {
 pub fn init() {
     static LOGGER: MyLogger = MyLogger;
     log::set_logger(&LOGGER).unwrap();
-    log::set_max_level(match option_env!("LOG") {
+    log::set_max_level(match option_env!("ULOG") {
         Some("ERROR") => log::LevelFilter::Error,
         Some("WARN") => log::LevelFilter::Warn,
         Some("INFO") => log::LevelFilter::Info,
         Some("DEBUG") => log::LevelFilter::Debug,
         Some("TRACE") => log::LevelFilter::Trace,
-        _ => log::LevelFilter::Debug,
+        _ => log::LevelFilter::Trace,
     });
 }

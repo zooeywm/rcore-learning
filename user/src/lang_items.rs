@@ -2,7 +2,7 @@
 
 use core::panic::PanicInfo;
 
-use crate::{println, sbi::shutdown};
+use log::error;
 
 /// When panic happened, we need to use `#[panic_handler]` to
 /// specify [`panic_handler`] as panic handler.
@@ -10,10 +10,10 @@ use crate::{println, sbi::shutdown};
 fn panic_handler(info: &PanicInfo) -> ! {
     let err = info.message().unwrap();
     if let Some(location) = info.location() {
-        println!("Paniced at {}:{} {}", location.file(), location.line(), err);
+        error!("Paniced at {}:{} {}", location.file(), location.line(), err);
     } else {
-        println!("Panicked: {}", err);
+        error!("Panicked: {}", err);
     }
-    // If OS is panic, shutdown the computer.
-    shutdown(true)
+    // When application panic, pend and wait for os instruction.
+    loop {}
 }

@@ -1,41 +1,24 @@
-//! We'll write an os running on riscv64gc-unknown-none-elf,
-//! so we need to add [no_std crate level attribute](https://docs.rust-embedded.org/book/intro/no-std.html).
-//! Then the `fn main()` requires std to initialize, because we disabled std,
-//! We need to add `no_main` attribute to disable initialize with std.
-//!
-//! After add `no_std` and `no_main`, the program contains no logic provided by std, we will re-write ourself.
+//! User lib
 
+#![feature(linkage)]
 #![no_std]
-#![no_main]
 #![warn(missing_docs)]
 #![feature(panic_info_message)]
 
-mod console;
-mod lang_items;
+use log::debug;
+use syscall::{sys_exit, sys_write};
+
+pub mod console;
+pub mod lang_items;
 mod logger;
-mod sbi;
+mod syscall;
 
-use core::arch::global_asm;
-
-use log::{debug, info};
-
-use crate::sbi::shutdown;
-
-global_asm!(include_str!("entry.asm"));
-
-/// With attribute `no_mangle` to avoid rustc mangle the function name, which leads to a link failure.
-/// In the opening state, we need to alloc stack frame and save the function call context, which is
-/// the lowest stack frame.
-///
-/// In the core initializing, we need to complete clear for `.bss` section, before we use any
-/// global variable allocted to `.bss`, we need to ensure it is cleared, we do this work in the
-/// beginning of [`rust_main()`] with [`clear_bss()`] after the control is transferred to rust, so
-/// we can no longer write assembly language to deal with this!
+/// User batch task start
 #[no_mangle]
-pub fn rust_main() -> ! {
+#[link_section = ".text.entry"]
+pub extern "C" fn _start() -> ! {
     clear_bss();
     logger::init();
-
     let SectionInfo {
         stext,
         etext,
@@ -46,18 +29,24 @@ pub fn rust_main() -> ! {
         sbss,
         ebss,
     } = get_sections();
-
     debug!(".text [{:#x}, {:#x})", stext, etext);
     debug!(".data [{:#x}, {:#x})", sdata, edata);
     debug!(".rodata [{:#x}, {:#x})", srodata, erodata);
     debug!(".bss [{:#x}, {:#x})", sbss, ebss);
+    exit(main());
+    unreachable!("unreachable after sys_exit!");
+}
 
-    info!("Hello, World!");
-    shutdown(false);
+/// Weak linkage, to make it pass compile when bin lack of main function.
+/// But will panic at runtime.
+#[linkage = "weak"]
+#[no_mangle]
+fn main() -> i32 {
+    panic!("Cannot find main!");
 }
 
 /// Clear `.bss` section.
-/// We will find the global variable `sbss` and `ebss` from the `linker.ld` which point the beginning
+/// We will find the global variable `sbss` and `ebss` from the `linker-qemu.ld` which point the beginning
 /// and the end addr to be clear. So we just traverse this area and make each byte to zero.
 fn clear_bss() {
     extern "C" {
@@ -65,6 +54,16 @@ fn clear_bss() {
         fn ebss();
     }
     (sbss as usize..ebss as usize).for_each(|a| unsafe { (a as *mut u8).write_volatile(0) })
+}
+
+/// Use write syscall
+pub fn write(fd: usize, buf: &[u8]) -> isize {
+    sys_write(fd, buf)
+}
+
+/// Use exit syscall
+pub fn exit(exit_code: i32) -> isize {
+    sys_exit(exit_code)
 }
 
 /// Record section start and end addr.

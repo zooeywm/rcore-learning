@@ -1,17 +1,16 @@
 //! Console helper.
 
+use super::write;
 use core::fmt::{Arguments, Write};
 
-use crate::sbi::console_putchar;
-
-/// Represent string print with sbi_rt.
+/// Represent string print with syscall.
 struct Stdout;
+
+const STDOUT: usize = 1;
 
 impl Write for Stdout {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        for c in s.chars() {
-            console_putchar(c as usize);
-        }
+        write(STDOUT, s.as_bytes());
         Ok(())
     }
 }
