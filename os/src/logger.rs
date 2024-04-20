@@ -9,7 +9,7 @@ pub struct MyLogger;
 
 impl log::Log for MyLogger {
     fn enabled(&self, metadata: &log::Metadata) -> bool {
-        metadata.level() <= Level::Info
+        metadata.level() <= Level::Trace
     }
 
     fn log(&self, record: &log::Record) {
@@ -45,6 +45,6 @@ pub fn init() {
         Some("INFO") => log::LevelFilter::Info,
         Some("DEBUG") => log::LevelFilter::Debug,
         Some("TRACE") => log::LevelFilter::Trace,
-        _ => log::LevelFilter::Debug,
+        _ => log::LevelFilter::Trace,
     });
 }

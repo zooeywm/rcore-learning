@@ -5,7 +5,6 @@
 #![warn(missing_docs)]
 #![feature(panic_info_message)]
 
-use log::debug;
 use syscall::{sys_exit, sys_write};
 
 pub mod console;
@@ -19,20 +18,20 @@ mod syscall;
 pub extern "C" fn _start() -> ! {
     clear_bss();
     logger::init();
-    let SectionInfo {
-        stext,
-        etext,
-        sdata,
-        edata,
-        srodata,
-        erodata,
-        sbss,
-        ebss,
-    } = get_sections();
-    debug!(".text [{:#x}, {:#x})", stext, etext);
-    debug!(".data [{:#x}, {:#x})", sdata, edata);
-    debug!(".rodata [{:#x}, {:#x})", srodata, erodata);
-    debug!(".bss [{:#x}, {:#x})", sbss, ebss);
+    // let SectionInfo {
+    //     stext,
+    //     etext,
+    //     sdata,
+    //     edata,
+    //     srodata,
+    //     erodata,
+    //     sbss,
+    //     ebss,
+    // } = get_sections();
+    // debug!(".text [{:#x}, {:#x})", stext, etext);
+    // debug!(".data [{:#x}, {:#x})", sdata, edata);
+    // debug!(".rodata [{:#x}, {:#x})", srodata, erodata);
+    // debug!(".bss [{:#x}, {:#x})", sbss, ebss);
     exit(main());
     unreachable!("unreachable after sys_exit!");
 }
@@ -66,39 +65,39 @@ pub fn exit(exit_code: i32) -> isize {
     sys_exit(exit_code)
 }
 
-/// Record section start and end addr.
-struct SectionInfo {
-    stext: usize,
-    etext: usize,
-    sdata: usize,
-    edata: usize,
-    srodata: usize,
-    erodata: usize,
-    sbss: usize,
-    ebss: usize,
-}
+// /// Record section start and end addr.
+// struct SectionInfo {
+//     stext: usize,
+//     etext: usize,
+//     sdata: usize,
+//     edata: usize,
+//     srodata: usize,
+//     erodata: usize,
+//     sbss: usize,
+//     ebss: usize,
+// }
 
-/// Get [`SectionInfo`]
-fn get_sections() -> SectionInfo {
-    extern "C" {
-        fn stext();
-        fn etext();
-        fn sdata();
-        fn edata();
-        fn srodata();
-        fn erodata();
-        fn sbss();
-        fn ebss();
-    }
-
-    SectionInfo {
-        stext: stext as usize,
-        etext: etext as usize,
-        sdata: sdata as usize,
-        edata: edata as usize,
-        srodata: srodata as usize,
-        erodata: erodata as usize,
-        sbss: sbss as usize,
-        ebss: ebss as usize,
-    }
-}
+// /// Get [`SectionInfo`]
+// fn get_sections() -> SectionInfo {
+//     extern "C" {
+//         fn stext();
+//         fn etext();
+//         fn sdata();
+//         fn edata();
+//         fn srodata();
+//         fn erodata();
+//         fn sbss();
+//         fn ebss();
+//     }
+//
+//     SectionInfo {
+//         stext: stext as usize,
+//         etext: etext as usize,
+//         sdata: sdata as usize,
+//         edata: edata as usize,
+//         srodata: srodata as usize,
+//         erodata: erodata as usize,
+//         sbss: sbss as usize,
+//         ebss: ebss as usize,
+//     }
+// }

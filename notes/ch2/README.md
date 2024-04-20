@@ -121,3 +121,51 @@ sepc | When Trap is an exception, record the address of last instruction before 
 scause | Describe the reason why Trap
 stval | Additional informations about Trap
 stvec | Control the entry address of Trap handler code
+
+## Realize Batch OS
+
+In Batch OS, each time a application is finished, the next app's codes and data are load into memory. So we must realize app load mechanism first. That is: Under the premise that the os and app codes need to be put in one executable file, we need to design a app load mechanism as brief as possible.
+
+- App use static binding method, bind with Batch OS.
+- Based on the bind information, the OS can find every app's start address, and can load into memory.
+
+### RISC-V switch between privilege levels
+
+The S-mode Batch OS need to do some initialization for establishing `AEE`(Application Execute Environment), and monitor the execution of app:
+
+- When app start, OS need to initialize app U-mode context, and switch to U-mode for execute app.
+- When app Trap, need to produce in OS.
+- When app error, need to go to OS, kill it, load and run the next app.
+- When app completed, need to go to OS, load and run the next app.
+
+These procedures need corporation of app, OS and hardware, to realize switching between privilege level.
+
+Because we need to continue from the next instruction after `ecall` in U-mode when back from S-mode, we need to ensure the app context(general registers and stack) is unchanged before and after `ecall`. Because different privilege mode use the same set of general registers, the S-mode OS may change the app's registers.
+
+So we need to store these registers like `Function Call Context` store. Besides the general registers, the CSR is also possibly changed, for example, the privilege that the CPU is situated. For trap, before it is U-mode, in processing it is S-mode, after it is return to U-mode. As for the stack context, as long as the two app's stack area are different, we don't need to worry about.
+
+#### Hardware Operation
+
+Before CPU trap from U to S due to instruction like `ecall`, the hardware will automatically do these things:
+
+- `sstatus`'s SPP field modified to CPU current privilege level
+- `sepc` modified to the next instruction after trap
+- `scause/stval` modified to trap cause and additional information
+- CPU jump to the entry address set by `stvec`, and set SPP as S, then process on Trap
+
+> `stvec` is a 64-bit CSR, when disruptions are enabled, saves the entry address of disruption.
+> 
+> it has two fields:
+> - MODE [1:0], length 2 bits
+> - BASE [63:2], length 62 bits
+> When MODE is set to 0, `stvec` is `Direct` mode, at this mode, whatever the cause of trap is, the entry address is always `BASE<<2`
+
+When CPU finish Trap, ready to return, need S-mode instruction `sret`, it do these things:
+- CPU set privilege using the `sstatus`'s SPP field.
+- CPU jumps to `sepc` stored address, and continue execution.
+
+### User Stack and Kernel Stack
+
+When trap triggered, CPU is switched to S-mode, and jump to `svec` indicated address, but before enter Trap, the kernel stack need to store app's general registers status.
+
+We first use `__all_traps` to store Trap Context in the kernel stack, then jump to Rust wrote `trap_handler` to finish trap distribution and handle. When `trap_handler` returns, use `__restore` to restore Trap Context from kernel stack. Finally use `sret` back to app.

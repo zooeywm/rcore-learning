@@ -10,18 +10,23 @@
 #![warn(missing_docs)]
 #![feature(panic_info_message)]
 
+pub mod batch;
 mod console;
 mod lang_items;
 mod logger;
 mod sbi;
+mod sync;
+pub mod syscall;
+pub mod trap;
 
 use core::arch::global_asm;
 
-use log::{debug, info};
+use log::debug;
 
-use crate::sbi::shutdown;
-
+// Link all Object files to one binary
 global_asm!(include_str!("entry.asm"));
+// Link all apps
+global_asm!(include_str!("link_app.S"));
 
 /// With attribute `no_mangle` to avoid rustc mangle the function name, which leads to a link failure.
 /// In the opening state, we need to alloc stack frame and save the function call context, which is
@@ -52,8 +57,9 @@ pub fn rust_main() -> ! {
     debug!(".rodata [{:#x}, {:#x})", srodata, erodata);
     debug!(".bss [{:#x}, {:#x})", sbss, ebss);
 
-    info!("Hello, World!");
-    shutdown(false);
+    trap::init();
+    batch::init();
+    batch::run_next_app();
 }
 
 /// Clear `.bss` section.
