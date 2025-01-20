@@ -15,11 +15,11 @@ impl log::Log for MyLogger {
     fn log(&self, record: &log::Record) {
         if self.enabled(record.metadata()) {
             let color_code = match record.level() {
-                Level::Error => 31,
-                Level::Warn => 93,
-                Level::Info => 34,
-                Level::Debug => 32,
-                Level::Trace => 90,
+                Level::Error => 31, // Red
+                Level::Warn => 93,  // BrightYellow
+                Level::Info => 34,  // Blue
+                Level::Debug => 32, // Green
+                Level::Trace => 90, // BrightBlack
             };
             println!(
                 "\x1b[{}m[{}][{}] {}\x1b[0m",

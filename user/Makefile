@@ -20,7 +20,7 @@ endif
 
 elf:
 	@echo Platform: $(BOARD)
-	@cp src/linker-$(BOARD).ld src/linker.ld
+	# @cp src/linker.ld src/linker.ld
 	@cargo build $(MODE_ARG)
 	@rm src/linker.ld
 

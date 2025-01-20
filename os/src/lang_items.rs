@@ -8,7 +8,7 @@ use crate::{println, sbi::shutdown};
 /// specify [`panic_handler`] as panic handler.
 #[panic_handler]
 fn panic_handler(info: &PanicInfo) -> ! {
-    let err = info.message().unwrap();
+    let err = info.message();
     if let Some(location) = info.location() {
         println!("Paniced at {}:{} {}", location.file(), location.line(), err);
     } else {

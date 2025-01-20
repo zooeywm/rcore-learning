@@ -5,10 +5,9 @@
 //!
 //! After add `no_std` and `no_main`, the program contains no logic provided by std, we will re-write ourself.
 
+#![deny(missing_docs)]
 #![no_std]
 #![no_main]
-#![warn(missing_docs)]
-#![feature(panic_info_message)]
 
 pub mod batch;
 mod console;

@@ -8,6 +8,12 @@ pub fn console_putchar(c: usize) {
     sbi_rt::legacy::console_putchar(c);
 }
 
+/// Call SBI getchar
+pub fn console_getchar() -> usize {
+    #[allow(deprecated)]
+    sbi_rt::legacy::console_getchar()
+}
+
 /// `failure` to represent whether the os is exit normally.
 pub fn shutdown(failure: bool) -> ! {
     if failure {
